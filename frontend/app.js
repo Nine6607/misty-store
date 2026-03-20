@@ -1,5 +1,5 @@
-// เปลี่ยนจากของเดิมเป็น URL ของ Render ที่พี่เพิ่งสร้าง (อย่าลืมเติม /api ปิดท้าย)
-const API_URL = 'https://https://pnpk-automation.onrender.com/api';
+// ก๊อปอันนี้ไปแปะแทนที่บรรทัดแรกเลย (ต้องมี /api ต่อท้ายด้วยนะ!)
+const API_URL = 'https://pnpk-automation.onrender.com/api';
 let currentView = 'home';
 let isLoginMode = true;
 
