@@ -21,3 +21,17 @@ exports.addProduct = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+// ฟังก์ชันสำหรับแอดมินเพิ่มสินค้า
+exports.addProduct = async (req, res) => {
+    try {
+        const { name, description, price, image_url, stock } = req.body;
+        const [result] = await db.query(
+            'INSERT INTO products (name, description, price, image_url, stock) VALUES (?, ?, ?, ?, ?)',
+            [name, description, price, image_url, stock]
+        );
+        res.status(201).json({ message: 'Product added!', productId: result.insertId });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

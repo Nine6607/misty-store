@@ -18,6 +18,7 @@
                 <button id="nav-auth-btn" onclick="navigate('auth')" class="bg-blue-600 px-5 py-2 rounded-lg glow-btn font-bold text-sm">Login</button>
                 <button id="nav-profile-btn" onclick="navigate('profile')" class="hidden bg-purple-600 px-5 py-2 rounded-lg glow-btn font-bold text-sm">Profile</button>
                 <button id="nav-logout-btn" onclick="logout()" class="hidden border border-red-500/50 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition font-bold text-sm">Logout</button>
+                <button onclick="navigate('admin')" class="bg-amber-500/20 text-amber-400 px-4 py-2 rounded-lg border border-amber-500/30 hover:bg-amber-500/40 transition font-bold text-sm">Admin Panel</button>
             </div>
         </div>
     </nav>
@@ -92,6 +93,41 @@
                 </div>
             </div>
         </section>
+        
+        <section id="view-admin" class="view-section pt-10">
+    <div class="max-w-2xl mx-auto glass-panel p-8 rounded-3xl border-amber-500/20">
+        <h2 class="text-3xl font-bold mb-6 text-amber-400 flex items-center">
+            <span class="mr-2">🛠️</span> Admin: Add New Product
+        </h2>
+        <form id="admin-product-form" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="text-sm text-gray-400">Product Name</label>
+                    <input type="text" id="admin-p-name" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-400">Price (THB)</label>
+                    <input type="number" id="admin-p-price" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-400">Stock</label>
+                    <input type="number" id="admin-p-stock" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-sm text-gray-400">Image URL (Unsplash Link)</label>
+                    <input type="text" id="admin-p-img" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-sm text-gray-400">Description</label>
+                    <textarea id="admin-p-desc" rows="3" class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition"></textarea>
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 py-4 rounded-xl font-bold text-lg shadow-lg shadow-amber-900/20 transition transform active:scale-95">
+                Spawn Product 🚀
+            </button>
+        </form>
+    </div>
+</section>
 
     </main>
     <script src="app.js"></script>

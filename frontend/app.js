@@ -291,3 +291,23 @@ async function topup() {
         }
     }
 }
+
+document.getElementById('admin-product-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const productData = {
+        name: document.getElementById('admin-p-name').value,
+        price: document.getElementById('admin-p-price').value,
+        stock: document.getElementById('admin-p-stock').value,
+        image_url: document.getElementById('admin-p-img').value,
+        description: document.getElementById('admin-p-desc').value
+    };
+
+    try {
+        await apiCall('/products', 'POST', productData);
+        Swal.fire({ icon: 'success', title: 'เสร็จสิ้น!', text: 'สินค้าถูกเสกเข้าระบบแล้ว', background: '#1e293b', color: '#fff' });
+        e.target.reset();
+        navigate('shop'); // ส่งกลับไปหน้า Shop เพื่อดูผลงาน
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: 'ล้มเหลว', text: err.message });
+    }
+});
