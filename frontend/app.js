@@ -1,13 +1,12 @@
-// ก๊อปอันนี้ไปแปะแทนที่บรรทัดแรกเลย (ต้องมี /api ต่อท้ายด้วยนะ!)
 const API_URL = 'https://pnpk-automation.onrender.com/api';
 let currentView = 'home';
 let isLoginMode = true;
 
+// --- Helper Functions ---
 const setToken = (token) => localStorage.setItem('misty_token', token);
 const getToken = () => localStorage.getItem('misty_token');
 const removeToken = () => localStorage.removeItem('misty_token');
 
-// ฟังก์ชันโชว์แจ้งเตือนแบบตัวตึง
 const showToast = (icon, title) => {
     Swal.fire({
         toast: true,
@@ -36,9 +35,11 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     return data;
 }
 
+// --- Navigation & Auth ---
 function navigate(viewId) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-    document.getElementById(`view-${viewId}`).classList.add('active');
+    const target = document.getElementById(`view-${viewId}`);
+    if (target) target.classList.add('active');
     currentView = viewId;
     
     if (viewId === 'shop') loadProducts();
@@ -52,13 +53,13 @@ function checkAuthState() {
     const btnLogout = document.getElementById('nav-logout-btn');
 
     if (token) {
-        btnLogin.classList.add('hidden');
-        btnProfile.classList.remove('hidden');
-        btnLogout.classList.remove('hidden');
+        btnLogin?.classList.add('hidden');
+        btnProfile?.classList.remove('hidden');
+        btnLogout?.classList.remove('hidden');
     } else {
-        btnLogin.classList.remove('hidden');
-        btnProfile.classList.add('hidden');
-        btnLogout.classList.add('hidden');
+        btnLogin?.classList.remove('hidden');
+        btnProfile?.classList.add('hidden');
+        btnLogout?.classList.add('hidden');
         if (currentView === 'profile') navigate('home');
     }
 }
@@ -69,7 +70,7 @@ function toggleAuthMode() {
     document.getElementById('auth-toggle-text').innerText = isLoginMode ? "Don't have an account?" : "Already have an account?";
 }
 
-document.getElementById('auth-form').addEventListener('submit', async (e) => {
+document.getElementById('auth-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('auth-username').value;
     const password = document.getElementById('auth-password').value;
@@ -110,90 +111,95 @@ function logout() {
     });
 }
 
+// --- Product Logic (Shop) ---
 async function loadProducts() {
     const container = document.getElementById('product-list');
     
-    // โชว์ Skeleton รอโหลดไปก่อน 3 กล่อง
+    // Skeleton Loading
     container.innerHTML = Array(3).fill(`
         <div class="glass-panel rounded-3xl overflow-hidden h-96 flex flex-col p-2">
             <div class="skeleton h-48 w-full rounded-2xl"></div>
-            <div class="p-4 mt-2">
-                <div class="skeleton h-6 w-3/4 mb-3 rounded"></div>
-                <div class="skeleton h-4 w-full mb-2 rounded"></div>
-                <div class="skeleton h-4 w-5/6 rounded"></div>
-            </div>
+            <div class="p-4 mt-2"><div class="skeleton h-6 w-3/4 mb-3 rounded"></div><div class="skeleton h-4 w-full rounded"></div></div>
         </div>
     `).join('');
 
     try {
         const products = await apiCall('/products');
         
-        // หน่วงเวลาจำลอง 0.5 วิ ให้เห็นความเนียนของ Skeleton (ในชีวิตจริงเอา setTimeout ออกได้)
         setTimeout(() => {
             container.innerHTML = products.map(p => `
-                <div class="glass-panel product-card rounded-3xl overflow-hidden flex flex-col transition cursor-pointer">
+                <div class="glass-panel product-card rounded-3xl overflow-hidden flex flex-col transition border border-white/5 hover:border-blue-500/50">
                     <div class="p-2">
                         <img src="${p.image_url}" alt="${p.name}" class="h-48 w-full object-cover rounded-2xl">
                     </div>
                     <div class="p-6 pt-2 flex-1 flex flex-col">
                         <h3 class="text-xl font-bold text-white mb-2">${p.name}</h3>
                         <p class="text-gray-400 text-sm flex-1 leading-relaxed">${p.description}</p>
-                        <div class="mt-6 flex justify-between items-end border-t border-gray-700/50 pt-4">
+                        <div class="mt-6 flex justify-between items-end border-t border-gray-700/50 pt-4 mb-4">
                             <div>
                                 <p class="text-xs text-gray-500 mb-1">Price</p>
                                 <span class="text-blue-400 font-mono text-2xl font-bold">${parseFloat(p.price).toLocaleString()} ฿</span>
                             </div>
                             <span class="text-xs bg-gray-800 px-3 py-1 rounded-full text-gray-400">Stock: ${p.stock}</span>
                         </div>
-                        <button onclick="buyProduct(${p.id}, '${p.name}', ${p.price})" class="mt-5 w-full bg-white/5 hover:bg-blue-600 py-3 rounded-xl transition font-bold border border-white/10 hover:border-transparent text-white group">
-                            Buy Now
-                        </button>
+                        <div class="flex flex-col gap-2">
+                            <button onclick="buyProduct(${p.id}, '${p.name}', ${p.price})" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl transition font-bold text-white">Buy Now</button>
+                            <button onclick="deleteProduct(${p.id})" class="w-full bg-red-500/10 hover:bg-red-600 py-2 rounded-xl transition font-bold border border-red-500/20 text-red-400 hover:text-white text-xs">Delete Product (Admin)</button>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }, 500);
     } catch (err) {
-        console.error(err);
-        container.innerHTML = `<p class="text-red-500 text-center w-full col-span-3">Failed to load products.</p>`;
+        container.innerHTML = `<p class="text-red-500 text-center w-full col-span-3">Failed to load: ${err.message}</p>`;
     }
 }
 
 async function buyProduct(id, name, price) {
     if (!getToken()) return Swal.fire({ icon: 'warning', title: 'Hey!', text: 'ล็อกอินก่อนสิวัยรุ่น' });
-    
-    // Popup ยืนยันหล่อๆ
     const confirm = await Swal.fire({
         title: `ซื้อ ${name}?`,
-        text: `ราคา ${parseFloat(price).toLocaleString()} ฿ หักเงินจากบัญชีนะ`,
+        text: `ราคา ${parseFloat(price).toLocaleString()} ฿`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#3b82f6',
-        cancelButtonColor: '#1e293b',
         confirmButtonText: 'จัดไป!'
     });
-
     if (!confirm.isConfirmed) return;
-    
     try {
-        const res = await apiCall('/tx/buy', 'POST', { productId: id });
-        Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: 'ซื้อของเข้าคลังเรียบร้อย',
-            background: '#1e293b',
-        });
-        loadProducts(); // รีเฟรชสต็อก
+        await apiCall('/tx/buy', 'POST', { productId: id });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'ซื้อของเรียบร้อย', background: '#1e293b', color: '#fff' });
+        loadProducts();
     } catch (err) {
         Swal.fire({ icon: 'error', title: 'Failed', text: err.message });
     }
 }
 
+async function deleteProduct(id) {
+    const confirm = await Swal.fire({
+        title: 'ลบจริงดิ?',
+        text: "ลบแล้วกู้คืนไม่ได้นะ!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'ลบเลย!'
+    });
+    if (confirm.isConfirmed) {
+        try {
+            await apiCall(`/products/${id}`, 'DELETE');
+            showToast('success', 'ลบสินค้าเรียบร้อย');
+            loadProducts();
+        } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+        }
+    }
+}
+
+// --- Profile & Topup ---
 async function loadProfileData() {
     if (!getToken()) return;
     try {
         const user = await apiCall('/auth/profile');
         document.getElementById('prof-username').innerText = `@${user.username}`;
-        // อัปเดตตัวเลขแบบรันขึ้นมาเนียนๆ (Counter animation effect)
         document.getElementById('prof-balance').innerText = parseFloat(user.balance).toLocaleString('en-US', { minimumFractionDigits: 2 });
 
         const history = await apiCall('/tx/history');
@@ -205,93 +211,40 @@ async function loadProfileData() {
                 <td class="py-4 px-2 text-blue-400 font-mono">${parseFloat(h.price_at_purchase).toLocaleString()} ฿</td>
                 <td class="py-4 px-2 text-sm text-gray-500">${new Date(h.created_at).toLocaleDateString()}</td>
             </tr>
-        `).join('') : '<tr><td colspan="4" class="p-6 text-center text-gray-600">No recent orders. ไปช็อปด่วน!</td></tr>';
+        `).join('') : '<tr><td colspan="4" class="p-6 text-center text-gray-600">No recent orders.</td></tr>';
     } catch (err) {
-        console.error(err);
         if(err.message.includes('Unauthorized')) logout();
     }
 }
 
 async function topup() {
-    // 1. เปิดหน้าต่างจำลอง Payment Gateway สุดหรู
-    const { value: formValues } = await Swal.fire({
+    const { value: amount } = await Swal.fire({
         title: 'Payment Gateway',
         html: `
-            <div class="text-left mt-2">
-                <label class="text-sm text-gray-400 mb-1 block">Amount to Topup (THB)</label>
-                <input id="swal-amount" type="number" class="w-full bg-black/40 border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none mb-5" placeholder="1000">
-                
-                <div class="p-5 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-2xl relative overflow-hidden shadow-inner">
-                    <div class="absolute -right-10 -top-10 w-24 h-24 bg-blue-500/20 rounded-full blur-xl"></div>
-                    <p class="text-xs text-blue-400 font-bold mb-4 uppercase tracking-wider flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                        Credit Card Details
-                    </p>
-                    <input id="swal-card" type="text" class="w-full bg-black/60 border border-gray-600 rounded-lg p-3 text-white font-mono text-sm mb-3 outline-none focus:border-blue-500 placeholder-gray-500 transition" placeholder="4242 4242 4242 4242" maxlength="19">
-                    <div class="flex space-x-3">
-                        <input type="text" class="w-1/2 bg-black/60 border border-gray-600 rounded-lg p-3 text-white font-mono text-sm outline-none focus:border-blue-500 placeholder-gray-500 transition" placeholder="MM/YY" maxlength="5">
-                        <input type="text" class="w-1/2 bg-black/60 border border-gray-600 rounded-lg p-3 text-white font-mono text-sm outline-none focus:border-blue-500 placeholder-gray-500 transition" placeholder="CVC" maxlength="3">
-                    </div>
-                </div>
+            <input id="swal-amount" type="number" class="w-full bg-black/40 border border-gray-700 rounded-lg p-3 text-white mb-4" placeholder="Amount (THB)">
+            <div class="p-4 bg-gray-800 rounded-xl border border-gray-700">
+                <input type="text" class="w-full bg-black/60 p-2 text-white mb-2" placeholder="4242 4242 4242 4242">
+                <div class="flex gap-2"><input type="text" class="w-1/2 bg-black/60 p-2" placeholder="MM/YY"><input type="text" class="w-1/2 bg-black/60 p-2" placeholder="CVC"></div>
             </div>
         `,
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Pay Securely',
-        confirmButtonColor: '#2563eb', 
-        cancelButtonColor: '#475569',
-        background: '#1e293b',
-        color: '#fff',
-        preConfirm: () => {
-            const amount = document.getElementById('swal-amount').value;
-            const card = document.getElementById('swal-card').value;
-            if (!amount || amount <= 0) {
-                Swal.showValidationMessage('ใส่ยอดเงินก่อนดิเพ่!');
-                return false;
-            }
-            if (!card || card.length < 15) {
-                Swal.showValidationMessage('กรุณาใส่เลขบัตร (พิมพ์มั่วๆ มาให้ยาวๆ ก็ผ่านละ)');
-                return false;
-            }
-            return amount;
-        }
+        preConfirm: () => document.getElementById('swal-amount').value
     });
 
-    // 2. ถ้ากดยืนยันจ่ายเงิน
-    if (formValues) {
-        // โชว์ Loading หมุนๆ จำลองการเชื่อมต่อ API ของธนาคาร
-        Swal.fire({
-            title: 'Processing...',
-            html: '<span class="text-sm text-gray-400">กำลังยืนยันยอดเงินกับธนาคารทิพย์</span>',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); },
-            background: '#1e293b',
-            color: '#fff'
-        });
-
+    if (amount) {
+        Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading() });
         try {
-            // เรียก API หยอดเหรียญลง Database เราจริงๆ
-            await apiCall('/tx/topup', 'POST', { amount: parseFloat(formValues) });
-            
-            // หน่วงเวลา 1.5 วินาที ให้ดูเหมือนประมวลผลเซิร์ฟเวอร์จริง
+            await apiCall('/tx/topup', 'POST', { amount: parseFloat(amount) });
             setTimeout(() => {
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: 'Payment Successful!', 
-                    text: `เงินเข้ากระเป๋า ${parseFloat(formValues).toLocaleString()} ฿ เรียบร้อย`,
-                    background: '#1e293b',
-                    color: '#fff',
-                    confirmButtonColor: '#3b82f6'
-                });
-                loadProfileData(); // ดึงตัวเลขยอดเงินมาอัปเดตหน้าเว็บ
-            }, 1500);
-
+                Swal.fire({ icon: 'success', title: 'Topup Successful!' });
+                loadProfileData();
+            }, 1000);
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Payment Failed', text: err.message, background: '#1e293b', color: '#fff' });
+            Swal.fire({ icon: 'error', title: 'Failed', text: err.message });
         }
     }
 }
 
+// --- Admin Logic ---
 document.getElementById('admin-product-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const productData = {
@@ -301,36 +254,15 @@ document.getElementById('admin-product-form')?.addEventListener('submit', async 
         image_url: document.getElementById('admin-p-img').value,
         description: document.getElementById('admin-p-desc').value
     };
-
     try {
         await apiCall('/products', 'POST', productData);
-        Swal.fire({ icon: 'success', title: 'เสร็จสิ้น!', text: 'สินค้าถูกเสกเข้าระบบแล้ว', background: '#1e293b', color: '#fff' });
+        Swal.fire({ icon: 'success', title: 'เสร็จสิ้น!', text: 'เสกสินค้าสำเร็จ' });
         e.target.reset();
-        navigate('shop'); // ส่งกลับไปหน้า Shop เพื่อดูผลงาน
+        navigate('shop');
     } catch (err) {
         Swal.fire({ icon: 'error', title: 'ล้มเหลว', text: err.message });
     }
 });
 
-async function deleteProduct(id) {
-    const result = await Swal.fire({
-        title: 'คุณแน่ใจหรือไม่?',
-        text: "เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'ใช่, ลบเลย!',
-        cancelButtonText: 'ยกเลิก'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            await apiCall(`/products/${id}`, 'DELETE');
-            Swal.fire('ลบแล้ว!', 'สินค้าถูกลบออกจากระบบแล้ว', 'success');
-            loadProducts(); // โหลดรายการสินค้าใหม่เพื่ออัปเดตหน้าจอ
-        } catch (err) {
-            Swal.fire('ผิดพลาด', err.message, 'error');
-        }
-    }
-}
+// Initialize
+checkAuthState();

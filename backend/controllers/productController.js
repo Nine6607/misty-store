@@ -1,48 +1,44 @@
-const pool = require('../config/db');
+const db = require('../config/db'); // เปลี่ยนชื่อให้เรียกง่ายๆ ว่า db
 
-exports.getProducts = async (req, res) => {
+// 1. ดึงสินค้าทั้งหมด (เปลี่ยนชื่อเป็น getAllProducts ให้ตรงกับ Routes)
+exports.getAllProducts = async (req, res) => {
     try {
-        const [products] = await pool.execute('SELECT * FROM products ORDER BY created_at DESC');
+        const [products] = await db.query('SELECT * FROM products ORDER BY created_at DESC');
         res.json(products);
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error: ' + error.message });
     }
 };
 
+// 2. เพิ่มสินค้า (ใช้แบบที่มี productId จะได้เทพๆ)
 exports.addProduct = async (req, res) => {
     const { name, description, price, image_url, stock } = req.body;
     try {
-        await pool.execute(
-            'INSERT INTO products (name, description, price, image_url, stock) VALUES (?, ?, ?, ?, ?)',
-            [name, description, price, image_url, stock]
-        );
-        res.status(201).json({ message: 'Product added' });
-    } catch (error) {
-        res.status(500).json({ error: 'Server error' });
-    }
-};
-
-// ฟังก์ชันสำหรับแอดมินเพิ่มสินค้า
-exports.addProduct = async (req, res) => {
-    try {
-        const { name, description, price, image_url, stock } = req.body;
         const [result] = await db.query(
             'INSERT INTO products (name, description, price, image_url, stock) VALUES (?, ?, ?, ?, ?)',
             [name, description, price, image_url, stock]
         );
-        res.status(201).json({ message: 'Product added!', productId: result.insertId });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(201).json({ 
+            message: 'Product added!', 
+            productId: result.insertId 
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error: ' + error.message });
     }
 };
 
-// ฟังก์ชันสำหรับลบสินค้า
+// 3. ลบสินค้า (จุดที่พี่ลบไม่ได้ น่าจะติดที่ชื่อตัวแปร db นี่แหละ)
 exports.deleteProduct = async (req, res) => {
     try {
-        const { id } = req.params;
-        await db.query('DELETE FROM products WHERE id = ?', [id]);
+        const { id } = req.params; // รับค่า ID จาก URL
+        const [result] = await db.query('DELETE FROM products WHERE id = ?', [id]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'ไม่พบสินค้าไอดีนี้' });
+        }
+        
         res.json({ message: 'ลบสินค้าเรียบร้อยแล้ว' });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Server error: ' + err.message });
     }
 };
