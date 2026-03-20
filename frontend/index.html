@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misty Store | The Digital SaaS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="font-sans antialiased text-gray-100">
+
+    <nav class="glass-panel fixed w-full z-50 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+            <div class="font-bold text-2xl tracking-wider text-blue-400 cursor-pointer" onclick="navigate('home')">MISTY.</div>
+            <div class="flex space-x-4 items-center">
+                <button onclick="navigate('shop')" class="hover:text-blue-400 transition font-medium">Shop</button>
+                <button id="nav-auth-btn" onclick="navigate('auth')" class="bg-blue-600 px-5 py-2 rounded-lg glow-btn font-bold text-sm">Login</button>
+                <button id="nav-profile-btn" onclick="navigate('profile')" class="hidden bg-purple-600 px-5 py-2 rounded-lg glow-btn font-bold text-sm">Profile</button>
+                <button id="nav-logout-btn" onclick="logout()" class="hidden border border-red-500/50 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition font-bold text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-12 px-4 max-w-7xl mx-auto">
+        
+        <section id="view-home" class="view-section active text-center pt-20">
+            <h1 class="text-6xl md:text-8xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 drop-shadow-lg">
+                Future of Digital Assets
+            </h1>
+            <p class="text-gray-400 text-xl mb-10 max-w-2xl mx-auto">Production-ready SaaS store template. Fast, Secure, and Elegant. Elevate your digital storefront today.</p>
+            <button onclick="navigate('shop')" class="bg-blue-600 text-white px-10 py-4 rounded-full text-lg font-bold glow-btn hover:scale-105 transition-transform">Explore Store</button>
+        </section>
+
+        <section id="view-shop" class="view-section">
+            <h2 class="text-3xl font-bold mb-8 border-b border-gray-700/50 pb-4 inline-block">Digital Store</h2>
+            <div id="product-list" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+        </section>
+
+        <section id="view-auth" class="view-section max-w-md mx-auto pt-10">
+            <div class="glass-panel p-8 rounded-3xl">
+                <h2 id="auth-title" class="text-3xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">Welcome Back</h2>
+                <form id="auth-form" class="space-y-5">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Username</label>
+                        <input type="text" id="auth-username" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Password</label>
+                        <input type="password" id="auth-password" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-4 rounded-xl font-bold glow-btn mt-4 text-lg">Submit</button>
+                </form>
+                <p class="text-center mt-6 text-gray-400 text-sm">
+                    <span id="auth-toggle-text">Don't have an account?</span> 
+                    <button onclick="toggleAuthMode()" class="text-blue-400 hover:text-blue-300 font-bold ml-1 transition">Click here</button>
+                </p>
+            </div>
+        </section>
+
+        <section id="view-profile" class="view-section pt-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-panel p-8 rounded-3xl md:col-span-1 h-fit relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl"></div>
+                    <h2 class="text-2xl font-bold mb-1 text-blue-400" id="prof-username">User</h2>
+                    <p class="text-gray-400 text-sm mb-6">Digital Wallet</p>
+                    <p class="text-4xl text-white font-mono font-bold tracking-tight mb-8"><span id="prof-balance" class="text-green-400">0.00</span> <span class="text-xl text-gray-500">฿</span></p>
+                    
+                    <div class="border-t border-gray-700/50 pt-6">
+                        <button onclick="topup()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-3 rounded-xl glow-btn font-bold text-lg transition flex items-center justify-center space-x-2 text-white shadow-lg shadow-blue-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                            <span>Add Funds (Credit Card)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl md:col-span-2">
+                    <h2 class="text-2xl font-bold mb-6">Order History</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-700/50 text-gray-400 text-sm uppercase tracking-wider">
+                                    <th class="pb-4 font-medium">ID</th>
+                                    <th class="pb-4 font-medium">Item</th>
+                                    <th class="pb-4 font-medium">Price</th>
+                                    <th class="pb-4 font-medium">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>

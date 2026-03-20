@@ -1,0 +1,67 @@
+body {
+    background: radial-gradient(circle at top center, #0f172a, #000000);
+    color: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.glass-panel {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.glow-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glow-btn:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+}
+
+/* อัปเกรดความเท่ของการ์ดสินค้า: Hover แล้วเด้ง + เรืองแสง */
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.product-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.view-section {
+    display: none;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+.view-section.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Skeleton Loading (เทาๆ กระพริบๆ ระหว่างรอเน็ต) */
+.skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+
+/* แต่งหน้าต่าง SweetAlert ให้เป็นโทน Dark แบบคูลๆ */
+div:where(.swal2-container) div:where(.swal2-popup) {
+    background: #1e293b !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 1.5rem !important;
+}
