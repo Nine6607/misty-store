@@ -35,3 +35,14 @@ exports.addProduct = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// ฟังก์ชันสำหรับลบสินค้า
+exports.deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query('DELETE FROM products WHERE id = ?', [id]);
+        res.json({ message: 'ลบสินค้าเรียบร้อยแล้ว' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

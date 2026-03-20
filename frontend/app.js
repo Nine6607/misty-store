@@ -311,3 +311,26 @@ document.getElementById('admin-product-form')?.addEventListener('submit', async 
         Swal.fire({ icon: 'error', title: 'ล้มเหลว', text: err.message });
     }
 });
+
+async function deleteProduct(id) {
+    const result = await Swal.fire({
+        title: 'คุณแน่ใจหรือไม่?',
+        text: "เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ใช่, ลบเลย!',
+        cancelButtonText: 'ยกเลิก'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await apiCall(`/products/${id}`, 'DELETE');
+            Swal.fire('ลบแล้ว!', 'สินค้าถูกลบออกจากระบบแล้ว', 'success');
+            loadProducts(); // โหลดรายการสินค้าใหม่เพื่ออัปเดตหน้าจอ
+        } catch (err) {
+            Swal.fire('ผิดพลาด', err.message, 'error');
+        }
+    }
+}
