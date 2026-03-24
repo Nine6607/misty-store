@@ -7,17 +7,16 @@ const setToken = (token) => localStorage.setItem('misty_token', token);
 const getToken = () => localStorage.getItem('misty_token');
 const removeToken = () => localStorage.removeItem('misty_token');
 
+// 🚩 เพิ่มฟังก์ชันจัดการ Role (ยศ)
+const setRole = (role) => localStorage.setItem('misty_role', role);
+const getRole = () => localStorage.getItem('misty_role');
+const removeRole = () => localStorage.removeItem('misty_role');
+
 const showToast = (icon, title) => {
     Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: icon,
-        title: title,
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        background: '#1e293b',
-        color: '#fff'
+        toast: true, position: 'top-end', icon: icon, title: title,
+        showConfirmButton: false, timer: 3000, timerProgressBar: true,
+        background: '#1e293b', color: '#fff'
     });
 };
 
@@ -48,19 +47,29 @@ function navigate(viewId) {
 
 function checkAuthState() {
     const token = getToken();
+    const role = getRole(); // 🚩 ดึงยศมาเช็ค
     const btnLogin = document.getElementById('nav-auth-btn');
     const btnProfile = document.getElementById('nav-profile-btn');
     const btnLogout = document.getElementById('nav-logout-btn');
+    const btnAdmin = document.getElementById('nav-admin-btn'); // 🚩 ต้องไปเติม ID นี้ใน HTML ด้วยนะ
 
     if (token) {
         btnLogin?.classList.add('hidden');
         btnProfile?.classList.remove('hidden');
         btnLogout?.classList.remove('hidden');
+        
+        // 🚩 ถ้าเป็น admin ให้โชว์ปุ่ม ถ้าไม่ใช่ให้ซ่อนทิ้งไป!
+        if (role === 'admin') {
+            btnAdmin?.classList.remove('hidden');
+        } else {
+            btnAdmin?.classList.add('hidden');
+        }
     } else {
         btnLogin?.classList.remove('hidden');
         btnProfile?.classList.add('hidden');
         btnLogout?.classList.add('hidden');
-        if (currentView === 'profile') navigate('home');
+        btnAdmin?.classList.add('hidden'); // ล็อกเอาท์ปุ๊บ ซ่อนปุ่มแอดมินด้วย
+        if (currentView === 'profile' || currentView === 'admin') navigate('home');
     }
 }
 
@@ -83,6 +92,7 @@ document.getElementById('auth-form')?.addEventListener('submit', async (e) => {
             toggleAuthMode();
         } else {
             setToken(res.token);
+            setRole(res.user.role); // 🚩 เก็บยศลงกระเป๋าทันทีที่ล็อกอินผ่าน!
             checkAuthState();
             showToast('success', 'Logged in successfully');
             navigate('profile');
@@ -95,15 +105,12 @@ document.getElementById('auth-form')?.addEventListener('submit', async (e) => {
 
 function logout() {
     Swal.fire({
-        title: 'จะออกแล้วหรอ?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#3b82f6',
-        confirmButtonText: 'ใช่, ออกระบบ!'
+        title: 'จะออกแล้วหรอ?', icon: 'warning', showCancelButton: true,
+        confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'ใช่, ออกระบบ!'
     }).then((result) => {
         if (result.isConfirmed) {
             removeToken();
+            removeRole(); // 🚩 โยนยศทิ้งตอนล็อกเอาท์
             checkAuthState();
             navigate('home');
             showToast('info', 'Logged out');
@@ -114,8 +121,8 @@ function logout() {
 // --- Product Logic (Shop) ---
 async function loadProducts() {
     const container = document.getElementById('product-list');
+    const role = getRole(); // 🚩 เช็คยศก่อนสร้างปุ่มลบ
     
-    // Skeleton Loading
     container.innerHTML = Array(3).fill(`
         <div class="glass-panel rounded-3xl overflow-hidden h-96 flex flex-col p-2">
             <div class="skeleton h-48 w-full rounded-2xl"></div>
@@ -144,7 +151,11 @@ async function loadProducts() {
                         </div>
                         <div class="flex flex-col gap-2">
                             <button onclick="buyProduct(${p.id}, '${p.name}', ${p.price})" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl transition font-bold text-white">Buy Now</button>
+                            
+                            ${role === 'admin' ? `
                             <button onclick="deleteProduct(${p.id})" class="w-full bg-red-500/10 hover:bg-red-600 py-2 rounded-xl transition font-bold border border-red-500/20 text-red-400 hover:text-white text-xs">Delete Product (Admin)</button>
+                            ` : ''}
+
                         </div>
                     </div>
                 </div>
@@ -158,11 +169,8 @@ async function loadProducts() {
 async function buyProduct(id, name, price) {
     if (!getToken()) return Swal.fire({ icon: 'warning', title: 'Hey!', text: 'ล็อกอินก่อนสิวัยรุ่น' });
     const confirm = await Swal.fire({
-        title: `ซื้อ ${name}?`,
-        text: `ราคา ${parseFloat(price).toLocaleString()} ฿`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'จัดไป!'
+        title: `ซื้อ ${name}?`, text: `ราคา ${parseFloat(price).toLocaleString()} ฿`,
+        icon: 'question', showCancelButton: true, confirmButtonText: 'จัดไป!'
     });
     if (!confirm.isConfirmed) return;
     try {
@@ -176,12 +184,8 @@ async function buyProduct(id, name, price) {
 
 async function deleteProduct(id) {
     const confirm = await Swal.fire({
-        title: 'ลบจริงดิ?',
-        text: "ลบแล้วกู้คืนไม่ได้นะ!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        confirmButtonText: 'ลบเลย!'
+        title: 'ลบจริงดิ?', text: "ลบแล้วกู้คืนไม่ได้นะ!", icon: 'warning',
+        showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบเลย!'
     });
     if (confirm.isConfirmed) {
         try {
@@ -201,6 +205,9 @@ async function loadProfileData() {
         const user = await apiCall('/auth/profile');
         document.getElementById('prof-username').innerText = `@${user.username}`;
         document.getElementById('prof-balance').innerText = parseFloat(user.balance).toLocaleString('en-US', { minimumFractionDigits: 2 });
+        
+        // 🚩 อัปเดตยศเผื่อไว้
+        if (user.role) setRole(user.role);
 
         const history = await apiCall('/tx/history');
         const tbody = document.getElementById('history-list');
