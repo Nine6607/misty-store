@@ -17,12 +17,21 @@ exports.buyProduct = async (req, res) => {
         const [users] = await connection.execute('SELECT balance FROM users WHERE id = ? FOR UPDATE', [userId]);
         const user = users[0];
 
-        if (user.balance < product.price) throw new Error('Insufficient balance');
+        // 🚩 ท่าไม้ตาย: ลบลูกน้ำทิ้งให้หมด แล้วแปลงเป็นตัวเลข!
+        const cleanBalance = parseFloat(user.balance.toString().replace(/,/g, ''));
+        const cleanPrice = parseFloat(product.price.toString().replace(/,/g, ''));
 
-        await connection.execute('UPDATE users SET balance = balance - ? WHERE id = ?', [product.price, userId]);
+        // ลอง Console.log ดูว่าระบบมันเห็นเงินเรากี่บาท (แอบดูใน Render ได้)
+        console.log(`เงินที่มี: ${cleanBalance} | ราคาสินค้า: ${cleanPrice}`);
+
+        if (cleanBalance < cleanPrice) {
+            throw new Error('Insufficient balance (เงินไม่พอจริงๆ หรือโดนระบบแกง!)');
+        }
+
+        await connection.execute('UPDATE users SET balance = balance - ? WHERE id = ?', [cleanPrice, userId]);
         await connection.execute('UPDATE products SET stock = stock - 1 WHERE id = ?', [productId]);
         await connection.execute('INSERT INTO orders (user_id, product_id, price_at_purchase) VALUES (?, ?, ?)', 
-            [userId, productId, product.price]
+            [userId, productId, cleanPrice]
         );
 
         await connection.commit();
@@ -37,11 +46,13 @@ exports.buyProduct = async (req, res) => {
 
 exports.topup = async (req, res) => {
     const { amount } = req.body;
-    if (amount <= 0) return res.status(400).json({ error: 'Invalid amount' });
+    const cleanAmount = parseFloat(amount.toString().replace(/,/g, ''));
+
+    if (cleanAmount <= 0) return res.status(400).json({ error: 'Invalid amount' });
 
     try {
-        await pool.execute('UPDATE users SET balance = balance + ? WHERE id = ?', [amount, req.user.id]);
-        res.json({ message: `Topped up ${amount} successfully` });
+        await pool.execute('UPDATE users SET balance = balance + ? WHERE id = ?', [cleanAmount, req.user.id]);
+        res.json({ message: `Topped up successfully` });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
