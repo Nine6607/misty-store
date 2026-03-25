@@ -123,13 +123,40 @@ async function loadProducts() {
     const container = document.getElementById('product-list');
     const role = getRole(); // 🚩 เช็คยศก่อนสร้างปุ่มลบ
     
-    container.innerHTML = Array(3).fill(`
-        <div class="glass-panel rounded-3xl overflow-hidden h-96 flex flex-col p-2">
-            <div class="skeleton h-48 w-full rounded-2xl"></div>
-            <div class="p-4 mt-2"><div class="skeleton h-6 w-3/4 mb-3 rounded"></div><div class="skeleton h-4 w-full rounded"></div></div>
-        </div>
-    `).join('');
+    setTimeout(() => {
+            container.innerHTML = products.map(p => `
+                <div class="glass-panel product-card rounded-3xl overflow-hidden flex flex-col transition border border-white/5 hover:border-blue-500/50">
+                    <div class="p-2">
+                        <img src="${p.image_url}" alt="${p.name}" class="h-48 w-full object-cover rounded-2xl">
+                    </div>
+                    <div class="p-6 pt-2 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold text-white mb-2">${p.name}</h3>
+                        <p class="text-gray-400 text-sm flex-1 leading-relaxed">${p.description}</p>
+                        <div class="mt-6 flex justify-between items-end border-t border-gray-700/50 pt-4 mb-4">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Price / Service</p>
+                                ${parseFloat(p.price) === 0 
+                                    ? `<span class="text-emerald-400 font-bold text-lg">⚙️ ประเมินหน้างาน</span>`
+                                    : `<span class="text-blue-400 font-mono text-2xl font-bold">${parseFloat(p.price).toLocaleString()} ฿</span>`
+                                }
+                            </div>
+                            <span class="text-xs bg-gray-800 px-3 py-1 rounded-full text-gray-400">Stock: ${parseFloat(p.price) === 0 ? '-' : p.stock}</span>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            ${parseFloat(p.price) === 0
+                                ? `<button onclick="requestQuote('${p.name}')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl transition font-bold text-white">📞 ขอใบเสนอราคา</button>`
+                                : `<button onclick="buyProduct(${p.id}, '${p.name}', ${p.price})" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl transition font-bold text-white">🛒 Buy Now</button>`
+                            }
+                            
+                            ${role === 'admin' ? `
+                            <button onclick="deleteProduct(${p.id})" class="w-full bg-red-500/10 hover:bg-red-600 py-2 rounded-xl transition font-bold border border-red-500/20 text-red-400 hover:text-white text-xs">Delete (Admin)</button>
+                            ` : ''}
 
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }, 500);
     try {
         const products = await apiCall('/products');
         
@@ -273,3 +300,23 @@ document.getElementById('admin-product-form')?.addEventListener('submit', async 
 
 // Initialize
 checkAuthState();
+
+// --- ฟังก์ชันสำหรับงานประเมินราคา ---
+function requestQuote(projectName) {
+    Swal.fire({
+        title: `สนใจระบบ ${projectName}?`,
+        text: 'งาน Automation & IoT ตัวนี้ต้องให้ทีมวิศวกรประเมินหน้างานครับ ทักไลน์มาคุยรายละเอียดเบื้องต้นกันได้เลย!',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '💬 ทัก Line คุยงาน',
+        cancelButtonText: 'ปิด',
+        confirmButtonColor: '#00B900', // สีเขียว Line
+        background: '#1e293b',
+        color: '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // 🚩 ใส่ลิงก์ Line ของบริษัทพี่ตรงนี้ได้เลย (ถ้ายังไม่มีปล่อยว่างงี้ไปก่อน มันจะเปิดหน้าเปล่า)
+            window.open('https://line.me/ti/p/~', '_blank'); 
+        }
+    });
+}
