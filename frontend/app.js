@@ -297,7 +297,7 @@ function requestQuote(projectName) {
     }).then((result) => {
         if (result.isConfirmed) {
             // 🚩 ใส่ลิงก์ Line ของบริษัทพี่ตรงนี้ได้เลย (ถ้ายังไม่มีปล่อยว่างงี้ไปก่อน มันจะเปิดหน้าเปล่า)
-            window.open('https://line.me/ti/p/~', '_blank'); 
+            window.open('https://line.me/ti/p/XyfNDCz4T2'); 
         }
     });
 }
