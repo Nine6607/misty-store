@@ -1,5 +1,4 @@
 // ==================== CONFIGURATION ====================
-// ใช้ environment variable หรือ hardcode ไว้ แต่ควรแยกเป็น config.js
 const API_URL = 'https://pnpk-automation.onrender.com/api';
 
 // ==================== GLOBAL VARIABLES ====================
@@ -17,13 +16,19 @@ const removeRole = () => localStorage.removeItem('misty_role');
 
 const showToast = (icon, title) => {
     Swal.fire({
-        toast: true, position: 'top-end', icon: icon, title: title,
-        showConfirmButton: false, timer: 3000, timerProgressBar: true,
-        background: '#1e293b', color: '#fff'
+        toast: true,
+        position: 'top-end',
+        icon: icon,
+        title: title,
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        background: '#1e293b',
+        color: '#fff'
     });
 };
 
-// ปรับปรุง apiCall ให้จัดการ network error และข้อความ error ที่ชัดเจน
+// ปรับปรุง apiCall ให้จัดการ network error
 async function apiCall(endpoint, method = 'GET', body = null) {
     const headers = { 'Content-Type': 'application/json' };
     const token = getToken();
@@ -38,15 +43,16 @@ async function apiCall(endpoint, method = 'GET', body = null) {
         if (!res.ok) throw new Error(data.error || `API Error: ${res.status}`);
         return data;
     } catch (err) {
-        // จัดการ network error
-        if (err.message === 'Failed to fetch') throw new Error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาตรวจสอบอินเทอร์เน็ต');
+        if (err.message === 'Failed to fetch') {
+            throw new Error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาตรวจสอบอินเทอร์เน็ต');
+        }
         throw err;
     }
 }
 
 // ==================== NAVIGATION & AUTH GUARD ====================
 function navigate(viewId) {
-    // 🛡️ GUARD: ป้องกันการเข้าถึงหน้า admin โดยไม่ใช่ role admin
+    // ป้องกันการเข้าถึงหน้า admin โดยไม่ใช่ role admin
     if (viewId === 'admin' && getRole() !== 'admin') {
         showToast('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         return;
@@ -104,7 +110,13 @@ document.getElementById('auth-form')?.addEventListener('submit', async (e) => {
     try {
         const res = await apiCall(endpoint, 'POST', { username, password });
         if (!isLoginMode) {
-            Swal.fire({ icon: 'success', title: 'Nice!', text: 'สมัครสมาชิกสำเร็จ! ล็อกอินได้เลย' });
+            Swal.fire({
+                icon: 'success',
+                title: 'Nice!',
+                text: 'สมัครสมาชิกสำเร็จ! ล็อกอินได้เลย',
+                background: '#1e293b',
+                color: '#fff'
+            });
             toggleAuthMode();
         } else {
             setToken(res.token);
@@ -115,14 +127,26 @@ document.getElementById('auth-form')?.addEventListener('submit', async (e) => {
         }
         e.target.reset();
     } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Oops...', text: err.message });
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: err.message,
+            background: '#1e293b',
+            color: '#fff'
+        });
     }
 });
 
 function logout() {
     Swal.fire({
-        title: 'จะออกแล้วหรอ?', icon: 'warning', showCancelButton: true,
-        confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'ออกระบบ'
+        title: 'จะออกแล้วหรอ?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#3b82f6',
+        confirmButtonText: 'ออกระบบ',
+        background: '#1e293b',
+        color: '#fff'
     }).then((result) => {
         if (result.isConfirmed) {
             removeToken();
@@ -140,17 +164,19 @@ async function loadProducts() {
     if (!container) return;
     const role = getRole();
 
-    // แสดง skeleton loading จริงๆ
+    // แสดง skeleton loading
     container.innerHTML = Array(3).fill(`
         <div class="glass-panel rounded-3xl overflow-hidden h-96 flex flex-col p-2">
             <div class="skeleton h-48 w-full rounded-2xl"></div>
-            <div class="p-4 mt-2"><div class="skeleton h-6 w-3/4 mb-3 rounded"></div><div class="skeleton h-4 w-full rounded"></div></div>
+            <div class="p-4 mt-2">
+                <div class="skeleton h-6 w-3/4 mb-3 rounded"></div>
+                <div class="skeleton h-4 w-full rounded"></div>
+            </div>
         </div>
     `).join('');
 
     try {
         const products = await apiCall('/products');
-        // render ทันที ไม่มี setTimeout
         container.innerHTML = products.map(p => `
             <div class="glass-panel product-card rounded-3xl overflow-hidden flex flex-col transition border border-white/5 hover:border-blue-500/50">
                 <div class="p-2">
@@ -187,37 +213,79 @@ async function loadProducts() {
 }
 
 async function buyProduct(id, name, price) {
-    if (!getToken()) return Swal.fire({ icon: 'warning', title: 'Hey!', text: 'ล็อกอินก่อนครับ/ค่ะ' });
+    if (!getToken()) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Hey!',
+            text: 'ล็อกอินก่อนครับ/ค่ะ',
+            background: '#1e293b',
+            color: '#fff'
+        });
+        return;
+    }
     const confirm = await Swal.fire({
-        title: `ซื้อ ${name}?`, text: `ราคา ${parseFloat(price).toLocaleString()} ฿`,
-        icon: 'question', showCancelButton: true, confirmButtonText: 'จัดไป!'
+        title: `ซื้อ ${name}?`,
+        text: `ราคา ${parseFloat(price).toLocaleString()} ฿`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'จัดไป!',
+        background: '#1e293b',
+        color: '#fff'
     });
     if (!confirm.isConfirmed) return;
 
     try {
         await apiCall('/tx/buy', 'POST', { productId: id });
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'ซื้อของเรียบร้อย', background: '#1e293b', color: '#fff' });
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'ซื้อของเรียบร้อย',
+            background: '#1e293b',
+            color: '#fff'
+        });
         loadProducts();
     } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Failed', text: err.message });
+        Swal.fire({
+            icon: 'error',
+            title: 'Failed',
+            text: err.message,
+            background: '#1e293b',
+            color: '#fff'
+        });
     }
 }
 
 async function deleteProduct(id) {
     const confirm = await Swal.fire({
-        title: 'ลบจริงดิ?', text: "ลบแล้วกู้คืนไม่ได้นะ!", icon: 'warning',
-        showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบเลย!'
+        title: 'ลบจริงดิ?',
+        text: "ลบแล้วกู้คืนไม่ได้นะ!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'ลบเลย!',
+        background: '#1e293b',
+        color: '#fff'
     });
     if (confirm.isConfirmed) {
-        // เริ่ม loading state
-        Swal.fire({ title: 'กำลังลบ...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        Swal.fire({
+            title: 'กำลังลบ...',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            background: '#1e293b'
+        });
         try {
             await apiCall(`/products/${id}`, 'DELETE');
             Swal.close();
             showToast('success', 'ลบสินค้าเรียบร้อย');
             loadProducts();
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err.message,
+                background: '#1e293b',
+                color: '#fff'
+            });
         }
     }
 }
@@ -230,7 +298,6 @@ async function loadProfileData() {
         document.getElementById('prof-username').innerText = `@${user.username}`;
         document.getElementById('prof-balance').innerText = parseFloat(user.balance).toLocaleString('en-US', { minimumFractionDigits: 2 });
         
-        // อัปเดต role เผื่อมีการเปลี่ยนแปลง
         if (user.role) setRole(user.role);
         checkAuthState(); // refresh ปุ่ม admin
 
@@ -245,7 +312,7 @@ async function loadProfileData() {
             </tr>
         `).join('') : '<tr><td colspan="4" class="p-6 text-center text-gray-600">No recent orders.</td></tr>';
     } catch (err) {
-        if(err.message.includes('Unauthorized')) logout();
+        if (err.message.includes('Unauthorized')) logout();
         else showToast('error', err.message);
     }
 }
@@ -261,7 +328,9 @@ async function topup() {
             </div>
         `,
         preConfirm: () => document.getElementById('swal-amount').value,
-        confirmButtonText: 'เติมเงิน'
+        confirmButtonText: 'เติมเงิน',
+        background: '#1e293b',
+        color: '#fff'
     });
 
     if (amountRaw) {
@@ -271,14 +340,30 @@ async function topup() {
             return;
         }
 
-        Swal.fire({ title: 'กำลังดำเนินการ...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        Swal.fire({
+            title: 'กำลังดำเนินการ...',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            background: '#1e293b'
+        });
         try {
             await apiCall('/tx/topup', 'POST', { amount });
             Swal.close();
-            Swal.fire({ icon: 'success', title: 'เติมเงินสำเร็จ!' });
+            Swal.fire({
+                icon: 'success',
+                title: 'เติมเงินสำเร็จ!',
+                background: '#1e293b',
+                color: '#fff'
+            });
             loadProfileData();
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'ล้มเหลว', text: err.message });
+            Swal.fire({
+                icon: 'error',
+                title: 'ล้มเหลว',
+                text: err.message,
+                background: '#1e293b',
+                color: '#fff'
+            });
         }
     }
 }
@@ -289,7 +374,6 @@ if (adminForm) {
     adminForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // 🛡️ GUARD: ป้องกันคนที่ไม่มีสิทธิ์ใช้ form นี้ (เผื่อมีการเข้าถึงผ่าน devtools)
         if (getRole() !== 'admin') {
             Swal.fire('ไม่มีสิทธิ์', 'คุณไม่ใช่ผู้ดูแลระบบ', 'error');
             return;
@@ -305,11 +389,23 @@ if (adminForm) {
 
         try {
             await apiCall('/products', 'POST', productData);
-            Swal.fire({ icon: 'success', title: 'เสร็จสิ้น!', text: 'เพิ่มสินค้าสำเร็จ' });
+            Swal.fire({
+                icon: 'success',
+                title: 'เสร็จสิ้น!',
+                text: 'เพิ่มสินค้าสำเร็จ',
+                background: '#1e293b',
+                color: '#fff'
+            });
             adminForm.reset();
             navigate('shop');
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'ล้มเหลว', text: err.message });
+            Swal.fire({
+                icon: 'error',
+                title: 'ล้มเหลว',
+                text: err.message,
+                background: '#1e293b',
+                color: '#fff'
+            });
         }
     });
 }
@@ -328,7 +424,7 @@ function requestQuote(projectName) {
         color: '#fff'
     }).then((result) => {
         if (result.isConfirmed) {
-            // ใส่ลิงก์ Line OA ของคุณตรงนี้
+            // เปลี่ยนลิงก์เป็น Line ID ของคุณ
             window.open('https://line.me/ti/p/XyfNDCz4T2');
         }
     });
