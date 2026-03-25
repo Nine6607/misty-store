@@ -208,7 +208,7 @@ async function loadProducts() {
     } catch (err) {
         container.innerHTML = `<p class="text-red-500 text-center w-full col-span-3">Failed to load: ${err.message}</p>`;
     }
-}
+
 
 async function buyProduct(id, name, price) {
     if (!getToken()) return Swal.fire({ icon: 'warning', title: 'Hey!', text: 'ล็อกอินก่อนสิวัยรุ่น' });
