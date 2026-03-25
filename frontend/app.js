@@ -173,41 +173,6 @@ async function loadProducts() {
         container.innerHTML = `<p class="text-red-500 text-center w-full col-span-3">Failed to load: ${err.message}</p>`;
     }
 }
-    try {
-        const products = await apiCall('/products');
-        
-        setTimeout(() => {
-            container.innerHTML = products.map(p => `
-                <div class="glass-panel product-card rounded-3xl overflow-hidden flex flex-col transition border border-white/5 hover:border-blue-500/50">
-                    <div class="p-2">
-                        <img src="${p.image_url}" alt="${p.name}" class="h-48 w-full object-cover rounded-2xl">
-                    </div>
-                    <div class="p-6 pt-2 flex-1 flex flex-col">
-                        <h3 class="text-xl font-bold text-white mb-2">${p.name}</h3>
-                        <p class="text-gray-400 text-sm flex-1 leading-relaxed">${p.description}</p>
-                        <div class="mt-6 flex justify-between items-end border-t border-gray-700/50 pt-4 mb-4">
-                            <div>
-                                <p class="text-xs text-gray-500 mb-1">Price</p>
-                                <span class="text-blue-400 font-mono text-2xl font-bold">${parseFloat(p.price).toLocaleString()} ฿</span>
-                            </div>
-                            <span class="text-xs bg-gray-800 px-3 py-1 rounded-full text-gray-400">Stock: ${p.stock}</span>
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <button onclick="buyProduct(${p.id}, '${p.name}', ${p.price})" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl transition font-bold text-white">Buy Now</button>
-                            
-                            ${role === 'admin' ? `
-                            <button onclick="deleteProduct(${p.id})" class="w-full bg-red-500/10 hover:bg-red-600 py-2 rounded-xl transition font-bold border border-red-500/20 text-red-400 hover:text-white text-xs">Delete Product (Admin)</button>
-                            ` : ''}
-
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }, 500);
-    } catch (err) {
-        container.innerHTML = `<p class="text-red-500 text-center w-full col-span-3">Failed to load: ${err.message}</p>`;
-    }
-}
 
 async function buyProduct(id, name, price) {
     if (!getToken()) return Swal.fire({ icon: 'warning', title: 'Hey!', text: 'ล็อกอินก่อนสิวัยรุ่น' });
