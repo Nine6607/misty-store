@@ -119,11 +119,25 @@ function logout() {
 }
 
 // --- Product Logic (Shop) ---
+// --- Product Logic (Shop) ---
 async function loadProducts() {
     const container = document.getElementById('product-list');
     const role = getRole(); // 🚩 เช็คยศก่อนสร้างปุ่มลบ
     
-    setTimeout(() => {
+    // โชว์กล่องโหลดหลอกๆ ไปก่อน
+    container.innerHTML = Array(3).fill(`
+        <div class="glass-panel rounded-3xl overflow-hidden h-96 flex flex-col p-2">
+            <div class="skeleton h-48 w-full rounded-2xl"></div>
+            <div class="p-4 mt-2"><div class="skeleton h-6 w-3/4 mb-3 rounded"></div><div class="skeleton h-4 w-full rounded"></div></div>
+        </div>
+    `).join('');
+
+    try {
+        // ดึงข้อมูลสินค้าจาก Backend
+        const products = await apiCall('/products');
+        
+        // เอาข้อมูลมาสร้างการ์ดของจริง
+        setTimeout(() => {
             container.innerHTML = products.map(p => `
                 <div class="glass-panel product-card rounded-3xl overflow-hidden flex flex-col transition border border-white/5 hover:border-blue-500/50">
                     <div class="p-2">
@@ -151,12 +165,15 @@ async function loadProducts() {
                             ${role === 'admin' ? `
                             <button onclick="deleteProduct(${p.id})" class="w-full bg-red-500/10 hover:bg-red-600 py-2 rounded-xl transition font-bold border border-red-500/20 text-red-400 hover:text-white text-xs">Delete (Admin)</button>
                             ` : ''}
-
                         </div>
                     </div>
                 </div>
             `).join('');
         }, 500);
+    } catch (err) {
+        container.innerHTML = `<p class="text-red-500 text-center w-full col-span-3">Failed to load: ${err.message}</p>`;
+    }
+}
     try {
         const products = await apiCall('/products');
         
