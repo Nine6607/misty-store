@@ -19,11 +19,9 @@ exports.buyProduct = async (req, res) => {
         const [users] = await connection.execute('SELECT balance FROM users WHERE id = ? FOR UPDATE', [userId]);
         const user = users[0];
 
-        // 🚩 ท่าไม้ตาย: ลบลูกน้ำทิ้งให้หมด แล้วแปลงเป็นตัวเลข!
         const cleanBalance = parseFloat(user.balance.toString().replace(/,/g, ''));
         const cleanPrice = parseFloat(product.price.toString().replace(/,/g, ''));
 
-        // ลอง Console.log ดูว่าระบบมันเห็นเงินเรากี่บาท (แอบดูใน Render ได้)
         console.log(`เงินที่มี: ${cleanBalance} | ราคาสินค้า: ${cleanPrice}`);
 
         if (cleanBalance < cleanPrice) {
@@ -46,13 +44,6 @@ exports.buyProduct = async (req, res) => {
     }
 };
 
-// 🚩 อย่าลืม import axios กับ form-data ไว้บนสุดของไฟล์ด้วยนะพี่!
-const axios = require('axios');
-const FormData = require('form-data');
-// const pool = require('../config/db'); // อันนี้พี่น่าจะมีอยู่แล้ว ปล่อยไว้
-
-// ... ฟังก์ชัน exports.buyProduct ของพี่อยู่ตรงนี้ ...
-
 exports.topup = async (req, res) => {
     const userId = req.user.id;
     const slipFile = req.file; // ไฟล์สลิปที่ multer รับมาให้
@@ -62,8 +53,8 @@ exports.topup = async (req, res) => {
     }
 
     try {
-        // 🚨 [พี่ต้องแก้ตรงนี้!] เอา Branch ID กับ API Key ของ SlipOK มาใส่!
-        const SLIPOK_BRANCH_ID = '#63401';
+        // 🚩 เอาเครื่องหมาย # ออกแล้ว เหลือแค่ตัวเลขล้วนๆ
+        const SLIPOK_BRANCH_ID = '63401';
         const SLIPOK_API_KEY = 'SLIPOKSZ607SF';
 
         // 1. แพ็คไฟล์รูปลงกล่อง เตรียมส่งให้ SlipOK
@@ -95,7 +86,7 @@ exports.topup = async (req, res) => {
         // 4. สลิปของแท้! ดึงยอดเงินที่โอนจริงออกมา (AI อ่านให้แล้ว)
         const amount = parseFloat(slipData.data.amount);
 
-        // 5. ดำเนินการอัปเดตยอดเงินเข้า Database (ท่าเดิมของพี่เลย)
+        // 5. ดำเนินการอัปเดตยอดเงินเข้า Database
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
