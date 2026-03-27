@@ -232,29 +232,74 @@ async function loadProfileData() {
     }
 }
 
+// --- Profile & Topup (อัปเกรดระบบพร้อมเพย์) ---
 async function topup() {
+    // 1. ถามลูกค้าว่าจะเติมเท่าไหร่
     const { value: amount } = await Swal.fire({
-        title: 'Payment Gateway',
-        html: `
-            <input id="swal-amount" type="number" class="w-full bg-black/40 border border-gray-700 rounded-lg p-3 text-white mb-4" placeholder="Amount (THB)">
-            <div class="p-4 bg-gray-800 rounded-xl border border-gray-700">
-                <input type="text" class="w-full bg-black/60 p-2 text-white mb-2" placeholder="4242 4242 4242 4242">
-                <div class="flex gap-2"><input type="text" class="w-1/2 bg-black/60 p-2" placeholder="MM/YY"><input type="text" class="w-1/2 bg-black/60 p-2" placeholder="CVC"></div>
-            </div>
-        `,
-        preConfirm: () => document.getElementById('swal-amount').value
+        title: 'ระบบเติมเงิน PNPK.AUTO',
+        input: 'number',
+        inputLabel: 'ระบุจำนวนเงินที่ต้องการเติม (บาท)',
+        inputPlaceholder: 'เช่น 500, 1500',
+        background: '#050b14', 
+        color: '#fff',
+        showCancelButton: true,
+        confirmButtonText: 'สร้าง QR Code',
+        confirmButtonColor: '#06b6d4',
+        inputValidator: (value) => {
+            if (!value || value <= 0) return 'ใส่ตัวเลขดีๆ ดิเพ่!'
+        }
     });
 
     if (amount) {
-        Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading() });
-        try {
-            await apiCall('/tx/topup', 'POST', { amount: parseFloat(amount) });
-            setTimeout(() => {
-                Swal.fire({ icon: 'success', title: 'Topup Successful!' });
-                loadProfileData();
-            }, 1000);
-        } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Failed', text: err.message });
+        // 🚩 [จุดที่พี่ต้องแก้!] ใส่เบอร์โทร หรือ เลขบัตรปชช. ที่ผูกพร้อมเพย์ของพี่ตรงนี้ (ไม่ต้องมีขีด)
+        const PROMPTPAY_ID = "0812345678"; 
+        
+        // ใช้บริการ API ฟรี สร้างภาพ QR Code พร้อมเพย์
+        const qrUrl = `https://promptpay.io/${PROMPTPAY_ID}/${amount}.png`;
+
+        // 2. โชว์ QR Code ให้ลูกค้าสแกน
+        const confirm = await Swal.fire({
+            title: `สแกนจ่าย ${amount} บาท`,
+            html: `
+                <div class="flex flex-col items-center justify-center p-4">
+                    <div class="bg-white p-4 rounded-2xl mb-4 shadow-lg shadow-cyan-500/50">
+                        <img src="${qrUrl}" alt="PromptPay QR" class="w-48 h-48 object-contain">
+                    </div>
+                    <p class="text-sm text-cyan-400 font-bold">พร้อมเพย์: ${PROMPTPAY_ID}</p>
+                    <p class="text-xs text-gray-400 mt-1">ชื่อบัญชี: [ใส่ชื่อพี่ตรงนี้]</p>
+                </div>
+                <p class="text-xs text-amber-500 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                    ⚠️ โอนเสร็จแล้ว ค่อยกดปุ่ม "โอนเงินเรียบร้อย" ด้านล่าง
+                </p>
+            `,
+            background: '#050b14', 
+            color: '#fff',
+            showCancelButton: true,
+            confirmButtonText: '✅ โอนเงินเรียบร้อย',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#10b981'
+        });
+
+        // 3. ถ้าลูกค้ากดว่าโอนแล้ว ให้ยิงไปบอก Backend ให้เพิ่มเงิน
+        if (confirm.isConfirmed) {
+            Swal.fire({ title: 'กำลังอัปเดตยอดเงิน...', didOpen: () => Swal.showLoading(), background: '#050b14', color: '#fff' });
+            try {
+                // ส่งคำสั่งไปเติมเงินใน Database
+                await apiCall('/tx/topup', 'POST', { amount: parseFloat(amount) });
+                
+                // ดีเลย์นิดนึงให้ดูเนียนๆ ว่ากำลังประมวลผล
+                setTimeout(() => {
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: 'ยอดเงินเข้าแล้ว!', 
+                        text: `เพิ่มยอด ${parseFloat(amount).toLocaleString()} ฿ เรียบร้อย`, 
+                        background: '#050b14', color: '#fff' 
+                    });
+                    loadProfileData(); // โหลดข้อมูล Profile ใหม่เพื่อโชว์ยอดเงินล่าสุด
+                }, 1500);
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'พังซะงั้น', text: err.message, background: '#050b14', color: '#fff' });
+            }
         }
     }
 }
