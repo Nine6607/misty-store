@@ -232,74 +232,57 @@ async function loadProfileData() {
     }
 }
 
-// --- Profile & Topup (อัปเกรดระบบพร้อมเพย์) ---
+// --- Profile & Topup (ระบบอัปโหลดสลิป Auto-Approve) ---
 async function topup() {
-    // 1. ถามลูกค้าว่าจะเติมเท่าไหร่
-    const { value: amount } = await Swal.fire({
-        title: 'ระบบเติมเงิน PNPK.AUTO',
-        input: 'number',
-        inputLabel: 'ระบุจำนวนเงินที่ต้องการเติม (บาท)',
-        inputPlaceholder: 'เช่น 500, 1500',
-        background: '#050b14', 
-        color: '#fff',
+    const { value: file } = await Swal.fire({
+        title: 'เติมเงินเข้าระบบ',
+        html: `
+            <div class="bg-white p-4 rounded-2xl mb-4 shadow-lg shadow-cyan-500/50 inline-block">
+                <img src="https://promptpay.io/0952816416.png" alt="QR" class="w-48 h-48 object-contain">
+            </div>
+            <p class="text-cyan-400 font-bold mb-4">พร้อมเพย์: 0952816416</p>
+            <p class="text-sm text-gray-400 mb-2">โอนเงินเสร็จแล้ว อัปโหลดสลิปที่นี่เลย 👇</p>
+        `,
+        input: 'file',
+        inputAttributes: {
+            'accept': 'image/*',
+            'aria-label': 'อัปโหลดสลิปโอนเงิน'
+        },
+        background: '#050b14', color: '#fff',
         showCancelButton: true,
-        confirmButtonText: 'สร้าง QR Code',
-        confirmButtonColor: '#06b6d4',
-        inputValidator: (value) => {
-            if (!value || value <= 0) return 'ใส่ตัวเลขดีๆ ดิเพ่!'
-        }
+        confirmButtonText: '🚀 ตรวจสอบสลิปด้วย AI',
+        cancelButtonText: 'ปิด',
+        confirmButtonColor: '#06b6d4'
     });
 
-    if (amount) {
-        // 🚩 [จุดที่พี่ต้องแก้!] ใส่เบอร์โทร หรือ เลขบัตรปชช. ที่ผูกพร้อมเพย์ของพี่ตรงนี้ (ไม่ต้องมีขีด)
-        const PROMPTPAY_ID = "0952816416"; 
+    if (file) {
+        Swal.fire({ title: 'กำลังให้ AI ตรวจสลิป...', didOpen: () => Swal.showLoading(), background: '#050b14', color: '#fff' });
         
-        // ใช้บริการ API ฟรี สร้างภาพ QR Code พร้อมเพย์
-        const qrUrl = `https://promptpay.io/${PROMPTPAY_ID}/${amount}.png`;
+        // แพ็คไฟล์สลิปใส่กล่องเตรียมส่งไป Backend
+        const formData = new FormData();
+        formData.append('slip', file);
 
-        // 2. โชว์ QR Code ให้ลูกค้าสแกน
-        const confirm = await Swal.fire({
-            title: `สแกนจ่าย ${amount} บาท`,
-            html: `
-                <div class="flex flex-col items-center justify-center p-4">
-                    <div class="bg-white p-4 rounded-2xl mb-4 shadow-lg shadow-cyan-500/50">
-                        <img src="${qrUrl}" alt="PromptPay QR" class="w-48 h-48 object-contain">
-                    </div>
-                    <p class="text-sm text-cyan-400 font-bold">พร้อมเพย์: ${PROMPTPAY_ID}</p>
-                    <p class="text-xs text-gray-400 mt-1">ชื่อบัญชี: นาย วัชรพล งามศิริ</p>
-                </div>
-                <p class="text-xs text-amber-500 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
-                    ⚠️ โอนเสร็จแล้ว ค่อยกดปุ่ม "โอนเงินเรียบร้อย" ด้านล่าง
-                </p>
-            `,
-            background: '#050b14', 
-            color: '#fff',
-            showCancelButton: true,
-            confirmButtonText: '✅ โอนเงินเรียบร้อย',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#10b981'
-        });
+        try {
+            // ต้องใช้ fetch สดๆ เพราะ apiCall เดิมของเราเซ็ต Header เป็น JSON ไว้ (แต่ไฟล์รูปมันเป็น FormData)
+            const token = getToken();
+            const res = await fetch(`${API_URL}/tx/topup`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData // โยนไฟล์รูปไปให้ Backend
+            });
+            
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'ตรวจสลิปไม่ผ่าน!');
 
-        // 3. ถ้าลูกค้ากดว่าโอนแล้ว ให้ยิงไปบอก Backend ให้เพิ่มเงิน
-        if (confirm.isConfirmed) {
-            Swal.fire({ title: 'กำลังอัปเดตยอดเงิน...', didOpen: () => Swal.showLoading(), background: '#050b14', color: '#fff' });
-            try {
-                // ส่งคำสั่งไปเติมเงินใน Database
-                await apiCall('/tx/topup', 'POST', { amount: parseFloat(amount) });
-                
-                // ดีเลย์นิดนึงให้ดูเนียนๆ ว่ากำลังประมวลผล
-                setTimeout(() => {
-                    Swal.fire({ 
-                        icon: 'success', 
-                        title: 'ยอดเงินเข้าแล้ว!', 
-                        text: `เพิ่มยอด ${parseFloat(amount).toLocaleString()} ฿ เรียบร้อย`, 
-                        background: '#050b14', color: '#fff' 
-                    });
-                    loadProfileData(); // โหลดข้อมูล Profile ใหม่เพื่อโชว์ยอดเงินล่าสุด
-                }, 1500);
-            } catch (err) {
-                Swal.fire({ icon: 'error', title: 'พังซะงั้น', text: err.message, background: '#050b14', color: '#fff' });
-            }
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'โอนจริง ไม่ติงนัง!', 
+                text: `ระบบเติมเงิน ${parseFloat(data.amount).toLocaleString()} ฿ ให้เรียบร้อยแล้ว!`, 
+                background: '#050b14', color: '#fff' 
+            });
+            loadProfileData(); // อัปเดตยอดเงินในหน้าเว็บทันที
+        } catch (err) {
+            Swal.fire({ icon: 'error', title: 'โป๊ะแตก!', text: err.message, background: '#050b14', color: '#fff' });
         }
     }
 }

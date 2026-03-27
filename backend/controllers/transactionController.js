@@ -1,4 +1,6 @@
 const pool = require('../config/db');
+const axios = require('axios');
+const FormData = require('form-data');
 
 exports.buyProduct = async (req, res) => {
     const { productId } = req.body;
@@ -44,17 +46,81 @@ exports.buyProduct = async (req, res) => {
     }
 };
 
-exports.topup = async (req, res) => {
-    const { amount } = req.body;
-    const cleanAmount = parseFloat(amount.toString().replace(/,/g, ''));
+// 🚩 อย่าลืม import axios กับ form-data ไว้บนสุดของไฟล์ด้วยนะพี่!
+const axios = require('axios');
+const FormData = require('form-data');
+// const pool = require('../config/db'); // อันนี้พี่น่าจะมีอยู่แล้ว ปล่อยไว้
 
-    if (cleanAmount <= 0) return res.status(400).json({ error: 'Invalid amount' });
+// ... ฟังก์ชัน exports.buyProduct ของพี่อยู่ตรงนี้ ...
+
+exports.topup = async (req, res) => {
+    const userId = req.user.id;
+    const slipFile = req.file; // ไฟล์สลิปที่ multer รับมาให้
+
+    if (!slipFile) {
+        return res.status(400).json({ error: 'ไม่พบไฟล์สลิป! อัปโหลดรูปด้วยวัยรุ่น' });
+    }
 
     try {
-        await pool.execute('UPDATE users SET balance = balance + ? WHERE id = ?', [cleanAmount, req.user.id]);
-        res.json({ message: `Topped up successfully` });
+        // 🚨 [พี่ต้องแก้ตรงนี้!] เอา Branch ID กับ API Key ของ SlipOK มาใส่!
+        const SLIPOK_BRANCH_ID = '#63401';
+        const SLIPOK_API_KEY = 'SLIPOKSZ607SF';
+
+        // 1. แพ็คไฟล์รูปลงกล่อง เตรียมส่งให้ SlipOK
+        const formData = new FormData();
+        formData.append('files', slipFile.buffer, {
+            filename: slipFile.originalname || 'slip.jpg',
+            contentType: slipFile.mimetype || 'image/jpeg'
+        });
+
+        // 2. ยิงคำสั่งไปให้ AI ของ SlipOK ตรวจสอบ
+        const slipOkResponse = await axios.post(
+            `https://api.slipok.com/api/line/apikey/${SLIPOK_BRANCH_ID}`,
+            formData,
+            {
+                headers: {
+                    'x-authorization': SLIPOK_API_KEY,
+                    ...formData.getHeaders()
+                }
+            }
+        );
+
+        const slipData = slipOkResponse.data;
+
+        // 3. ถ้า SlipOK บอกว่าปลอม, ซ้ำ หรืออ่านไม่ออก เตะก้านคอกลับไปเลย!
+        if (slipData.success !== true) {
+            return res.status(400).json({ error: 'สลิปปลอม, ใช้ซ้ำ หรือ AI อ่านไม่ออก!' });
+        }
+
+        // 4. สลิปของแท้! ดึงยอดเงินที่โอนจริงออกมา (AI อ่านให้แล้ว)
+        const amount = parseFloat(slipData.data.amount);
+
+        // 5. ดำเนินการอัปเดตยอดเงินเข้า Database (ท่าเดิมของพี่เลย)
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            const [users] = await connection.execute('SELECT balance FROM users WHERE id = ? FOR UPDATE', [userId]);
+            const user = users[0];
+            const cleanBalance = parseFloat(user.balance.toString().replace(/,/g, ''));
+            const newBalance = cleanBalance + amount;
+
+            await connection.execute('UPDATE users SET balance = ? WHERE id = ?', [newBalance, userId]);
+
+            await connection.commit();
+            res.json({ message: 'Topup success', amount: amount });
+        } catch (dbError) {
+            await connection.rollback();
+            throw dbError;
+        } finally {
+            connection.release();
+        }
+
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        // ดัก Error เผื่อระบบ SlipOK ล่มหรือยิง API ไม่ผ่าน
+        console.error('SlipOK Error:', error.response?.data || error.message);
+        const errorMsg = error.response?.data?.message || 'ระบบตรวจสลิปขัดข้อง โปรดลองใหม่';
+        res.status(500).json({ error: errorMsg });
     }
 };
 
