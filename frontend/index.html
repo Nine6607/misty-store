@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNPK_Automation | The Digital Shop</title>
+    <title>PNPK.AUTO | Smart Automation & IoT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="font-sans antialiased text-gray-100">
 
- <nav class="glass-panel fixed w-full z-50 top-0 border-b border-blue-900/30 bg-black/50 backdrop-blur-md">
+    <nav class="glass-panel fixed w-full z-50 top-0 border-b border-blue-900/30 bg-black/50 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-20 items-center">
             <div class="font-black text-3xl tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 cursor-pointer flex items-center gap-2" onclick="navigate('home')">
                 <span class="text-3xl">⚙️</span> PNPK<span class="text-white">.AUTO</span>
@@ -25,23 +25,19 @@
         </div>
     </nav>
 
-    <main class="pt-24 pb-12 px-4 max-w-7xl mx-auto">
+    <main class="pt-28 pb-12 px-4 max-w-7xl mx-auto">
         
- <section id="view-home" class="view-section active text-center pt-32 pb-20 relative">
+        <section id="view-home" class="view-section active text-center pt-24 pb-20 relative">
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px] -z-10"></div>
-            
             <span class="px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-bold tracking-widest uppercase mb-8 inline-block">
                 Next-Gen Industrial Solutions
             </span>
-            
             <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
                 Smart <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Automation</span> <br> & IoT Systems
             </h1>
-            
             <p class="text-gray-400 text-lg md:text-xl mb-12 max-w-3xl mx-auto leading-relaxed">
                 ยกระดับประสิทธิภาพอุตสาหกรรมด้วยระบบควบคุมอัตโนมัติ หุ่นยนต์ และ Internet of Things บริการให้คำปรึกษา ออกแบบ และติดตั้งแบบครบวงจรโดยทีมวิศวกรมืออาชีพ
             </p>
-            
             <div class="flex justify-center gap-4">
                 <button onclick="navigate('shop')" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-full text-lg font-bold shadow-lg shadow-cyan-500/40 hover:scale-105 transition-transform">
                     ดูผลงาน & บริการ
@@ -52,16 +48,42 @@
             </div>
         </section>
 
+        <section id="view-shop" class="view-section">
+            <h2 class="text-3xl font-bold mb-8 border-b border-cyan-900/50 pb-4 inline-block text-cyan-400">Our Services & Products</h2>
+            <div id="product-list" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+        </section>
+
+        <section id="view-auth" class="view-section max-w-md mx-auto pt-10">
+            <div class="glass-panel p-8 rounded-3xl">
+                <h2 id="auth-title" class="text-3xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">Welcome Back</h2>
+                <form id="auth-form" class="space-y-5">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Username</label>
+                        <input type="text" id="auth-username" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Password</label>
+                        <input type="password" id="auth-password" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-4 rounded-xl font-bold glow-btn mt-4 text-lg">Submit</button>
+                </form>
+                <p class="text-center mt-6 text-gray-400 text-sm">
+                    <span id="auth-toggle-text">Don't have an account?</span> 
+                    <button onclick="toggleAuthMode()" class="text-cyan-400 hover:text-cyan-300 font-bold ml-1 transition">Click here</button>
+                </p>
+            </div>
+        </section>
+
         <section id="view-profile" class="view-section pt-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="glass-panel p-8 rounded-3xl md:col-span-1 h-fit relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl"></div>
-                    <h2 class="text-2xl font-bold mb-1 text-blue-400" id="prof-username">User</h2>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                    <h2 class="text-2xl font-bold mb-1 text-cyan-400" id="prof-username">User</h2>
                     <p class="text-gray-400 text-sm mb-6">Digital Wallet</p>
-                    <p class="text-4xl text-white font-mono font-bold tracking-tight mb-8"><span id="prof-balance" class="text-green-400">0.00</span> <span class="text-xl text-gray-500">฿</span></p>
+                    <p class="text-4xl text-white font-mono font-bold tracking-tight mb-8"><span id="prof-balance" class="text-emerald-400">0.00</span> <span class="text-xl text-gray-500">฿</span></p>
                     
                     <div class="border-t border-gray-700/50 pt-6">
-                        <button onclick="topup()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-3 rounded-xl glow-btn font-bold text-lg transition flex items-center justify-center space-x-2 text-white shadow-lg shadow-blue-500/30">
+                        <button onclick="topup()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-3 rounded-xl glow-btn font-bold text-lg transition flex items-center justify-center space-x-2 text-white shadow-lg shadow-cyan-500/30">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                             <span>Add Funds (Credit Card)</span>
                         </button>
@@ -69,7 +91,7 @@
                 </div>
 
                 <div class="glass-panel p-8 rounded-3xl md:col-span-2">
-                    <h2 class="text-2xl font-bold mb-6">Order History</h2>
+                    <h2 class="text-2xl font-bold mb-6 text-cyan-400">Order History</h2>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -88,39 +110,39 @@
         </section>
         
         <section id="view-admin" class="view-section pt-10">
-    <div class="max-w-2xl mx-auto glass-panel p-8 rounded-3xl border-amber-500/20">
-        <h2 class="text-3xl font-bold mb-6 text-amber-400 flex items-center">
-            <span class="mr-2">🛠️</span> Admin: Add New Product
-        </h2>
-        <form id="admin-product-form" class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2">
-                    <label class="text-sm text-gray-400">Product Name</label>
-                    <input type="text" id="admin-p-name" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
-                </div>
-                <div>
-                    <label class="text-sm text-gray-400">Price (THB)</label>
-                    <input type="number" id="admin-p-price" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
-                </div>
-                <div>
-                    <label class="text-sm text-gray-400">Stock</label>
-                    <input type="number" id="admin-p-stock" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
-                </div>
-                <div class="col-span-2">
-                    <label class="text-sm text-gray-400">Image URL (Unsplash Link)</label>
-                    <input type="text" id="admin-p-img" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
-                </div>
-                <div class="col-span-2">
-                    <label class="text-sm text-gray-400">Description</label>
-                    <textarea id="admin-p-desc" rows="3" class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition"></textarea>
-                </div>
+            <div class="max-w-2xl mx-auto glass-panel p-8 rounded-3xl border-amber-500/20">
+                <h2 class="text-3xl font-bold mb-6 text-amber-400 flex items-center">
+                    <span class="mr-2">🛠️</span> Admin: Add New Project / Product
+                </h2>
+                <form id="admin-product-form" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2">
+                            <label class="text-sm text-gray-400">Project / Product Name</label>
+                            <input type="text" id="admin-p-name" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400">Price (THB) <span class="text-xs text-amber-500 block">ใส่ 0 = ประเมินหน้างาน</span></label>
+                            <input type="number" id="admin-p-price" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400">Stock</label>
+                            <input type="number" id="admin-p-stock" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="text-sm text-gray-400">Image URL</label>
+                            <input type="text" id="admin-p-img" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="text-sm text-gray-400">Description</label>
+                            <textarea id="admin-p-desc" rows="3" class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white outline-none focus:border-amber-500 transition"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 py-4 rounded-xl font-bold text-lg shadow-lg shadow-amber-900/20 transition transform active:scale-95 mt-4">
+                        Spawn Product 🚀
+                    </button>
+                </form>
             </div>
-            <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 py-4 rounded-xl font-bold text-lg shadow-lg shadow-amber-900/20 transition transform active:scale-95">
-                Spawn Product 🚀
-            </button>
-        </form>
-    </div>
-</section>
+        </section>
 
     </main>
     <script src="app.js"></script>
