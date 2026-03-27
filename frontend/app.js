@@ -252,7 +252,7 @@ async function topup() {
 
     if (amount) {
         // 🚩 [จุดที่พี่ต้องแก้!] ใส่เบอร์โทร หรือ เลขบัตรปชช. ที่ผูกพร้อมเพย์ของพี่ตรงนี้ (ไม่ต้องมีขีด)
-        const PROMPTPAY_ID = "0812345678"; 
+        const PROMPTPAY_ID = "0952816416"; 
         
         // ใช้บริการ API ฟรี สร้างภาพ QR Code พร้อมเพย์
         const qrUrl = `https://promptpay.io/${PROMPTPAY_ID}/${amount}.png`;
@@ -266,7 +266,7 @@ async function topup() {
                         <img src="${qrUrl}" alt="PromptPay QR" class="w-48 h-48 object-contain">
                     </div>
                     <p class="text-sm text-cyan-400 font-bold">พร้อมเพย์: ${PROMPTPAY_ID}</p>
-                    <p class="text-xs text-gray-400 mt-1">ชื่อบัญชี: [ใส่ชื่อพี่ตรงนี้]</p>
+                    <p class="text-xs text-gray-400 mt-1">ชื่อบัญชี: นาย วัชรพล งามศิริ</p>
                 </div>
                 <p class="text-xs text-amber-500 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
                     ⚠️ โอนเสร็จแล้ว ค่อยกดปุ่ม "โอนเงินเรียบร้อย" ด้านล่าง
