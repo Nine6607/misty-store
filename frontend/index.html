@@ -10,53 +10,45 @@
 </head>
 <body class="font-sans antialiased text-gray-100">
 
-    <nav class="glass-panel fixed w-full z-50 top-0">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-            <div class="font-bold text-2xl tracking-wider text-blue-400 cursor-pointer" onclick="navigate('home')">PNPK_Automation</div>
+ <nav class="glass-panel fixed w-full z-50 top-0 border-b border-blue-900/30 bg-black/50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-20 items-center">
+            <div class="font-black text-3xl tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 cursor-pointer flex items-center gap-2" onclick="navigate('home')">
+                <span class="text-3xl">⚙️</span> PNPK<span class="text-white">.AUTO</span>
+            </div>
             <div class="flex space-x-4 items-center">
-                <button onclick="navigate('shop')" class="hover:text-blue-400 transition font-medium">Shop</button>
-                <button id="nav-auth-btn" onclick="navigate('auth')" class="bg-blue-600 px-5 py-2 rounded-lg glow-btn font-bold text-sm">Login</button>
-                <button id="nav-profile-btn" onclick="navigate('profile')" class="hidden bg-purple-600 px-5 py-2 rounded-lg glow-btn font-bold text-sm">Profile</button>
-                <button id="nav-logout-btn" onclick="logout()" class="hidden border border-red-500/50 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition font-bold text-sm">Logout</button>
-                
-                <button id="nav-admin-btn" onclick="navigate('admin')" class="hidden bg-amber-500/20 text-amber-400 px-4 py-2 rounded-lg border border-amber-500/30 hover:bg-amber-500/40 transition font-bold text-sm">Admin Panel</button>
+                <button onclick="navigate('shop')" class="text-gray-300 hover:text-cyan-400 transition font-medium text-sm uppercase tracking-widest">Services</button>
+                <button id="nav-auth-btn" onclick="navigate('auth')" class="bg-cyan-600/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-600 hover:text-white px-6 py-2 rounded-full transition-all duration-300 font-bold text-sm">Login</button>
+                <button id="nav-profile-btn" onclick="navigate('profile')" class="hidden bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-2 rounded-full shadow-lg shadow-cyan-500/30 hover:scale-105 transition-all font-bold text-sm text-white">Profile</button>
+                <button id="nav-logout-btn" onclick="logout()" class="hidden border border-red-500/30 text-red-400 px-4 py-2 rounded-full hover:bg-red-500/20 transition font-bold text-sm">Logout</button>
+                <button id="nav-admin-btn" onclick="navigate('admin')" class="hidden bg-amber-500/20 text-amber-400 px-5 py-2 rounded-full border border-amber-500/50 hover:bg-amber-500 hover:text-white transition-all font-bold text-sm">🛠️ Admin</button>
             </div>
         </div>
     </nav>
 
     <main class="pt-24 pb-12 px-4 max-w-7xl mx-auto">
         
-        <section id="view-home" class="view-section active text-center pt-20">
-            <h1 class="text-6xl md:text-8xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 drop-shadow-lg">
-               Digital_Shop
+ <section id="view-home" class="view-section active text-center pt-32 pb-20 relative">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px] -z-10"></div>
+            
+            <span class="px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-bold tracking-widest uppercase mb-8 inline-block">
+                Next-Gen Industrial Solutions
+            </span>
+            
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
+                Smart <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Automation</span> <br> & IoT Systems
             </h1>
-            <p class="text-gray-400 text-xl mb-10 max-w-2xl mx-auto">อนาคตยุคใหม่สำหรับคุณพร้อมแล้วที่นี่</p>
-            <button onclick="navigate('shop')" class="bg-blue-600 text-white px-10 py-4 rounded-full text-lg font-bold glow-btn hover:scale-105 transition-transform">เข้าสู่หน้าร้านของเรา</button>
-        </section>
-
-        <section id="view-shop" class="view-section">
-            <h2 class="text-3xl font-bold mb-8 border-b border-gray-700/50 pb-4 inline-block">Digital Store</h2>
-            <div id="product-list" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
-        </section>
-
-        <section id="view-auth" class="view-section max-w-md mx-auto pt-10">
-            <div class="glass-panel p-8 rounded-3xl">
-                <h2 id="auth-title" class="text-3xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">Welcome Back</h2>
-                <form id="auth-form" class="space-y-5">
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-2">Username</label>
-                        <input type="text" id="auth-username" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-2">Password</label>
-                        <input type="password" id="auth-password" required class="w-full bg-black/40 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
-                    </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-4 rounded-xl font-bold glow-btn mt-4 text-lg">Submit</button>
-                </form>
-                <p class="text-center mt-6 text-gray-400 text-sm">
-                    <span id="auth-toggle-text">Don't have an account?</span> 
-                    <button onclick="toggleAuthMode()" class="text-blue-400 hover:text-blue-300 font-bold ml-1 transition">Click here</button>
-                </p>
+            
+            <p class="text-gray-400 text-lg md:text-xl mb-12 max-w-3xl mx-auto leading-relaxed">
+                ยกระดับประสิทธิภาพอุตสาหกรรมด้วยระบบควบคุมอัตโนมัติ หุ่นยนต์ และ Internet of Things บริการให้คำปรึกษา ออกแบบ และติดตั้งแบบครบวงจรโดยทีมวิศวกรมืออาชีพ
+            </p>
+            
+            <div class="flex justify-center gap-4">
+                <button onclick="navigate('shop')" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-full text-lg font-bold shadow-lg shadow-cyan-500/40 hover:scale-105 transition-transform">
+                    ดูผลงาน & บริการ
+                </button>
+                <button onclick="window.open('https://line.me/ti/p/XyfNDCz4T2', '_blank')" class="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white/10 transition-colors">
+                    💬 ปรึกษาวิศวกร
+                </button>
             </div>
         </section>
 

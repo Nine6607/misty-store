@@ -157,7 +157,7 @@ async function loadProducts() {
                         </div>
                         <div class="flex flex-col gap-2">
                             ${parseFloat(p.price) === 0
-                                ? `<button onclick="requestQuote('${p.name}')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl transition font-bold text-white">📞 ขอใบเสนอราคา</button>`
+                                ? `<button onclick="requestQuote('${p.name}')" class="pulse-green w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl transition font-bold text-white">📞 ขอใบเสนอราคา</button>`
                                 : `<button onclick="buyProduct(${p.id}, '${p.name}', ${p.price})" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl transition font-bold text-white">🛒 Buy Now</button>`
                             }
                             
