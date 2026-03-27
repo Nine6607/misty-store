@@ -22,8 +22,6 @@ exports.buyProduct = async (req, res) => {
         const cleanBalance = parseFloat(user.balance.toString().replace(/,/g, ''));
         const cleanPrice = parseFloat(product.price.toString().replace(/,/g, ''));
 
-        console.log(`เงินที่มี: ${cleanBalance} | ราคาสินค้า: ${cleanPrice}`);
-
         if (cleanBalance < cleanPrice) {
             throw new Error('Insufficient balance (เงินไม่พอจริงๆ หรือโดนระบบแกง!)');
         }
@@ -46,25 +44,22 @@ exports.buyProduct = async (req, res) => {
 
 exports.topup = async (req, res) => {
     const userId = req.user.id;
-    const slipFile = req.file; // ไฟล์สลิปที่ multer รับมาให้
+    const slipFile = req.file; 
 
     if (!slipFile) {
         return res.status(400).json({ error: 'ไม่พบไฟล์สลิป! อัปโหลดรูปด้วยวัยรุ่น' });
     }
 
     try {
-        // 🚩 เอาเครื่องหมาย # ออกแล้ว เหลือแค่ตัวเลขล้วนๆ
         const SLIPOK_BRANCH_ID = '63401';
         const SLIPOK_API_KEY = 'SLIPOKSZ607SF';
 
-        // 1. แพ็คไฟล์รูปลงกล่อง เตรียมส่งให้ SlipOK
         const formData = new FormData();
         formData.append('files', slipFile.buffer, {
             filename: slipFile.originalname || 'slip.jpg',
             contentType: slipFile.mimetype || 'image/jpeg'
         });
 
-        // 2. ยิงคำสั่งไปให้ AI ของ SlipOK ตรวจสอบ
         const slipOkResponse = await axios.post(
             `https://api.slipok.com/api/line/apikey/${SLIPOK_BRANCH_ID}`,
             formData,
@@ -78,40 +73,56 @@ exports.topup = async (req, res) => {
 
         const slipData = slipOkResponse.data;
 
-        // 3. ถ้า SlipOK บอกว่าปลอม, ซ้ำ หรืออ่านไม่ออก เตะก้านคอกลับไปเลย!
         if (slipData.success !== true) {
-            return res.status(400).json({ error: 'สลิปปลอม, ใช้ซ้ำ หรือ AI อ่านไม่ออก!' });
+            return res.status(400).json({ error: 'สลิปปลอม หรือ AI อ่านไม่ออก!' });
         }
 
-        // 4. สลิปของแท้! ดึงยอดเงินที่โอนจริงออกมา (AI อ่านให้แล้ว)
+        // 🚩 ดึงยอดเงิน และ "เลขอ้างอิง (transRef)" จากสลิปมาเตรียมไว้
         const amount = parseFloat(slipData.data.amount);
+        const transRef = slipData.data.transRef; 
 
-        // 5. ดำเนินการอัปเดตยอดเงินเข้า Database
+        if (!transRef) {
+             return res.status(400).json({ error: 'ไม่พบเลขอ้างอิงบนสลิป โปรดใช้สลิปธนาคารมาตรฐาน' });
+        }
+
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
 
+            // 🚩 [วิชาสกัดดาวรุ่ง] เช็คก่อนเลยว่าเลขอ้างอิงนี้ เคยจดลงสมุดหนังหมาไปรึยัง?!
+            const [existingSlips] = await connection.execute('SELECT trans_ref FROM used_slips WHERE trans_ref = ?', [transRef]);
+            
+            if (existingSlips.length > 0) {
+                // ถ้ามีข้อมูลแปลว่าเคยเติมไปแล้ว ดีดออกเลย!
+                throw new Error('มุกนี้ไม่เนียน! สลิปนี้ถูกใช้เติมเงินไปแล้วครับเสี่ย!');
+            }
+
+            // ถ้าเป็นสลิปใหม่ซิงๆ ค่อยดึงเงินมาอัปเดต
             const [users] = await connection.execute('SELECT balance FROM users WHERE id = ? FOR UPDATE', [userId]);
             const user = users[0];
             const cleanBalance = parseFloat(user.balance.toString().replace(/,/g, ''));
             const newBalance = cleanBalance + amount;
 
+            // 1. เติมเงินเข้ากระเป๋า
             await connection.execute('UPDATE users SET balance = ? WHERE id = ?', [newBalance, userId]);
+            
+            // 2. 🚩 จดเลขอ้างอิงนี้ลงสมุดหนังหมา (ป้องกันการใช้ซ้ำในอนาคต)
+            await connection.execute('INSERT INTO used_slips (trans_ref, user_id, amount) VALUES (?, ?, ?)', [transRef, userId, amount]);
 
             await connection.commit();
             res.json({ message: 'Topup success', amount: amount });
         } catch (dbError) {
             await connection.rollback();
-            throw dbError;
+            throw dbError; // โยน Error ไปให้ catch ตัวล่างจัดการพ่นแจ้งเตือน
         } finally {
             connection.release();
         }
 
     } catch (error) {
-        // ดัก Error เผื่อระบบ SlipOK ล่มหรือยิง API ไม่ผ่าน
-        console.error('SlipOK Error:', error.response?.data || error.message);
-        const errorMsg = error.response?.data?.message || 'ระบบตรวจสลิปขัดข้อง โปรดลองใหม่';
-        res.status(500).json({ error: errorMsg });
+        console.error('Slip Error:', error.response?.data || error.message);
+        // ถ้าระบบเจอ Error ที่เรา throw ไว้ (เช่น สลิปซ้ำ) ให้เอาคำพูดนั้นมาโชว์เลย
+        const errorMsg = error.response?.data?.message || error.message || 'ระบบตรวจสลิปขัดข้อง โปรดลองใหม่';
+        res.status(400).json({ error: errorMsg });
     }
 };
 

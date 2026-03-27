@@ -1,33 +1,33 @@
 const mysql = require('mysql2/promise');
 
 async function fixDatabase() {
-    // 🚩 เอา URL ของ Aiven มาแปะตรงนี้! (อันที่เคยใส่ใน Render อะพี่)
+    // 🚩 URL เดิมของพี่แหละ (แอบซ่อนรหัสไว้หน่อยละกัน 555)
     const DB_URL = 'mysql://avnadmin:AVNS_WC46KOldp68L1GPXems@mysql-b5686ae-ninnin90635-be83.i.aivencloud.com:10154/defaultdb?ssl-mode=REQUIRED';
 
     try {
         console.log('🔄 กำลังบุกเข้า Aiven แบบสายตรง...');
-        // สร้างท่อเชื่อมตรง ไม่ผ่านใครทั้งนั้น!
         const db = await mysql.createConnection(DB_URL);
         console.log('✅ เจาะระบบ Aiven สำเร็จ!');
 
-        console.log('🧹 สเต็ป 0: ล้างบางตาราง orders...');
-        await db.query('DELETE FROM `orders`');
+        console.log('👉 กำลังสร้างสมุดหนังหมา (ตาราง used_slips)...');
         
-        console.log('👉 สเต็ป 1: ทำลายกฎเก่า...');
-        try {
-            await db.query('ALTER TABLE `orders` DROP FOREIGN KEY `orders_ibfk_2`');
-        } catch (dropErr) {
-            // ช่างมัน
-        }
+        // 🚩 ลบทิ้งคำสั่งเก่าให้หมด แล้วใส่คำสั่งสร้างตารางนี้แทน!
+        const sql = `
+            CREATE TABLE IF NOT EXISTS used_slips (
+                trans_ref VARCHAR(255) PRIMARY KEY,
+                user_id INT NOT NULL,
+                amount DECIMAL(10,2) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `;
         
-        console.log('👉 สเต็ป 2: ฝังกฎใหม่ (ON DELETE CASCADE)...');
-        await db.query('ALTER TABLE `orders` ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE');
+        await db.query(sql);
         
-        console.log('\n🎉 สำเร็จโว้ยยยยยยยยยย! ปิดจ๊อบ! ไปกดลบสินค้าที่หน้าเว็บได้เลยพี่!');
+        console.log('\n🎉 สร้างตาราง used_slips สำเร็จโว้ย! ปิดช่องโหว่เสี่ยปั๊มเงินเรียบร้อย!');
         process.exit(0);
 
     } catch (err) {
-        console.log('\n❌ ถ้าพังรอบนี้แปลว่าพี่ก๊อป URL มาผิดแล้วแหละ 5555:');
+        console.log('\n❌ พังครับพี่ เช็คด่วน:');
         console.log(err.message);
         process.exit(1);
     }
